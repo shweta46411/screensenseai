@@ -1,0 +1,49 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# VS Code settings
+.vscode/
+
+# Virtual environment folders
+env/
+venv/
+ENV/
+.venv/
+.Python
+
+# macOS system files
+.DS_Store
+
+# Python egg files
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+
+# Logs
+*.log
+
+# Streamlit secrets (DO NOT COMMIT)
+.streamlit/secrets.toml
+
+# Model or data cache
+*.joblib
+*.h5
+*.keras
+*.pkl
+
+# Streamlit Cloud deployment config cache
+.streamlit/config.toml
+
+# Local datasets
+*.csv
+data/
