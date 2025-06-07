@@ -7,3 +7,6 @@ scikit-learn
 openai
 python-dotenv
 datetime
+joblib
+tensorflow==2.15.0
+
