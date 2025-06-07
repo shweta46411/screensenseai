@@ -5,11 +5,11 @@ from datetime import datetime
 import openai
 import matplotlib.pyplot as plt
 import seaborn as sns
-import tensorflow as tf
 import joblib
 import json
 import os
 from dotenv import load_dotenv
+import tensorflow as tf
 # 🔐 OpenAI API Key
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -403,6 +403,112 @@ with tab2:
 #             )
 #             gpt_sleep_output = response['choices'][0]['message']['content']
 #             st.info(gpt_sleep_output)
+# with tab3:
+#     st.markdown("## 🛌 Predict Upcoming Sleep Quality")
+#     st.markdown("""
+#     This feature uses a student's **last 7 days of behavior** to predict whether they will have a **Good Sleep** or **Poor Sleep** on the selected date.
+    
+#     The prediction is made by a **CNN-LSTM model**, trained on time series patterns from student behavior like:
+#     - 📱 App Usage
+#     - 🏃 Physical Activity
+#     - 🗣️ Conversations
+#     - 🧠 Mental Health Scores
+#     """)
+
+#     @st.cache_resource
+#     def load_sleep_assets():
+#         model = tf.keras.models.load_model("data/final_hybrid_cnn_lstm_sleep_model.keras")
+#         scaler = joblib.load("data/final_sleep_scaler.joblib")
+#         with open("data/final_sleep_model_metadata.json") as f:
+#             metadata = json.load(f)
+#         data = pd.read_csv("data/master_daily_data_with_names.csv", parse_dates=["date"])
+#         return model, scaler, metadata, data
+
+#     model, scaler, meta, sleep_df = load_sleep_assets()
+#     feature_cols = meta["feature_columns"]
+#     seq_len = meta["sequence_length"]
+#     threshold = meta["optimal_threshold"]
+#     labels = meta["target_names"]
+
+#     valid_names = sorted([n for n in sleep_df["name"].dropna().unique() if isinstance(n, str) and n.strip()])
+#     selected_name = st.selectbox("👤 Select Student", valid_names, key="student_selector_tab3")
+#     selected_uid = sleep_df[sleep_df["name"] == selected_name]["uid"].iloc[0]
+
+#     user_df = sleep_df[sleep_df["uid"] == selected_uid].sort_values("date").reset_index(drop=True)
+#     valid_dates = user_df["date"].iloc[seq_len:].dt.date.unique()
+#     selected_date = st.selectbox("📅 Select Date to Predict Sleep", valid_dates, key="date_selector_tab3")
+
+#     try:
+#         end_idx = user_df[user_df["date"].dt.date == selected_date].index[0]
+#         start_idx = end_idx - seq_len
+#         if start_idx < 0:
+#             raise IndexError("Not enough prior data.")
+#         seq_df = user_df.iloc[start_idx:end_idx][feature_cols]
+#     except Exception as e:
+#         st.error(f"❗ Not enough data to make a prediction for this date. ({e})")
+#         st.stop()
+
+#     if seq_df.shape[0] != seq_len:
+#         st.warning("⚠️ Not enough prior data for a full 7-day sequence.")
+#         st.stop()
+
+#     input_data = scaler.transform(seq_df).reshape(1, seq_len, len(feature_cols))
+#     pred_proba = model.predict(input_data)[0][0]
+#     prediction = int(pred_proba >= threshold)
+#     label = labels[prediction]
+#     color = "#3cb371" if prediction == 1 else "#ff6b6b"
+
+#     st.markdown(f"""
+#     <div style="padding: 1rem; border-radius: 12px; background-color: {color}; color: white; font-size: 1.2rem">
+#         <b>Predicted Sleep Quality:</b> {label}  
+#         <br>
+#         <b>Confidence:</b> {pred_proba:.2f}
+#     </div>
+#     """, unsafe_allow_html=True)
+
+#     st.markdown("### 📊 Last 7 Days: Behavior Trends")
+#     st.markdown("Behavioral indicators used to predict sleep quality.")
+#     fig, ax = plt.subplots(figsize=(10, 3))
+#     cols_to_plot = [col for col in ["Running", "academic_study", "total_app_foreground_minutes"] if col in seq_df.columns]
+#     if cols_to_plot:
+#         seq_df[cols_to_plot].plot(ax=ax)
+#         ax.set_ylabel("Minutes / Intensity")
+#         ax.set_title("Running | Academic | App Usage (7-day window)")
+#         plt.xticks(rotation=45)
+#         st.pyplot(fig)
+#     else:
+#         st.info("No matching columns found for plotting trends.")
+
+#     st.markdown("### 🤖 Personalized Insight from GPT")
+#     behavior_summary = seq_df.mean().to_dict()
+#     summary_text = "\n".join([f"- {k.replace('_', ' ').title()}: {round(v, 2)}" for k, v in behavior_summary.items()])
+
+#     prompt = f"""
+# You are a helpful AI coach. A student's sleep quality was predicted as **{label}** on {selected_date} using 7 days of behavior data.
+
+# Here is the average of their past 7 days' data:
+# {summary_text}
+
+# Please provide:
+# 1. **🧠 Sleep Insight**: In 2–3 lines, explain patterns in their behavior that likely led to this sleep prediction.
+# 2. **🌿 Wellness Tip**: One actionable recommendation for the student to improve or maintain sleep quality.
+
+# Use markdown formatting exactly like this:
+# **🧠 Sleep Insight:**
+# <your insight here>
+
+# **🌿 Wellness Tip:**
+# <your tip here>
+# """
+
+#     with st.spinner("Generating AI-generated feedback..."):
+#         response = openai.ChatCompletion.create(
+#             model="gpt-4",
+#             messages=[{"role": "user", "content": prompt}]
+#         )
+#         gpt_response = response['choices'][0]['message']['content']
+#         st.info(gpt_response)
+
 with tab3:
     st.markdown("## 🛌 Predict Upcoming Sleep Quality")
     st.markdown("""
@@ -452,11 +558,15 @@ with tab3:
         st.warning("⚠️ Not enough prior data for a full 7-day sequence.")
         st.stop()
 
-    input_data = scaler.transform(seq_df).reshape(1, seq_len, len(feature_cols))
-    pred_proba = model.predict(input_data)[0][0]
-    prediction = int(pred_proba >= threshold)
-    label = labels[prediction]
-    color = "#3cb371" if prediction == 1 else "#ff6b6b"
+    try:
+        input_data = scaler.transform(seq_df).reshape(1, seq_len, len(feature_cols))
+        pred_proba = model.predict(input_data, verbose=0)[0][0]
+        prediction = int(pred_proba >= threshold)
+        label = labels[prediction]
+        color = "#3cb371" if prediction == 1 else "#ff6b6b"
+    except Exception as e:
+        st.error(f"❗ Model prediction failed. Check model input shape or TF version. ({e})")
+        st.stop()
 
     st.markdown(f"""
     <div style="padding: 1rem; border-radius: 12px; background-color: {color}; color: white; font-size: 1.2rem">
@@ -467,7 +577,6 @@ with tab3:
     """, unsafe_allow_html=True)
 
     st.markdown("### 📊 Last 7 Days: Behavior Trends")
-    st.markdown("Behavioral indicators used to predict sleep quality.")
     fig, ax = plt.subplots(figsize=(10, 3))
     cols_to_plot = [col for col in ["Running", "academic_study", "total_app_foreground_minutes"] if col in seq_df.columns]
     if cols_to_plot:
@@ -502,11 +611,12 @@ Use markdown formatting exactly like this:
 """
 
     with st.spinner("Generating AI-generated feedback..."):
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        gpt_response = response['choices'][0]['message']['content']
-        st.info(gpt_response)
-
-
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            gpt_response = response['choices'][0]['message']['content']
+            st.info(gpt_response)
+        except Exception as e:
+            st.error(f"❗ Failed to fetch GPT feedback. ({e})")
