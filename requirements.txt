@@ -1,8 +1,18 @@
-streamlit
-pandas
-numpy
-matplotlib
-seaborn
-tensorflow
+# Core app
+streamlit>=1.32.0
+
+# ML & prediction
+tensorflow>=2.11.0
+scikit-learn
 joblib
+pandas
+
+# Charts
+matplotlib
+
+# OpenAI GPT integration
 openai
+
+# Optional: improve rendering and markdown
+markdown-it-py
+rich
