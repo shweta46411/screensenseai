@@ -1,14 +1,15 @@
 # ✅ Replace everything in requirements.txt with this:
+streamlit==1.45.0
 tensorflow==2.11.0
 keras==2.11.0
-joblib
-pandas
 numpy==1.23.5
+pandas
 scikit-learn
-seaborn
-matplotlib
-streamlit==1.45.0
+matplotlib==3.10.3
+seaborn==0.13.2
 openai==0.28.1
-python-dotenv
+python-dotenv==1.0.1
+joblib==1.5.1
+
 
 
