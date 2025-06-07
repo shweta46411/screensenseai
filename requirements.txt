@@ -6,6 +6,6 @@ pandas
 scikit-learn
 matplotlib
 seaborn
-openai
+openai==0.28
 python-dotenv
 joblib
