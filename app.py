@@ -19,7 +19,6 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # Streamlit Config
 st.set_page_config(page_title="ScreenSense AI", layout="wide")
 
-
 st.markdown("""
 <style>
 /* 🌈 OUTER BACKGROUND (body) */
@@ -118,7 +117,7 @@ footer, .css-1v3fvcr {
 </style>
 """, unsafe_allow_html=True)
 
-# 📊 Load Data
+#Load Data
 df = pd.read_csv("data/student_life_daily_features_with_names.csv")
 df['date'] = pd.to_datetime(df['date'], errors='coerce')
 df.dropna(subset=['uid', 'date'], inplace=True)
@@ -129,22 +128,6 @@ df.fillna(0, inplace=True)
 uid_name_map = dict(zip(df['uid'], df['name']))
 name_uid_map = dict(zip(df['name'], df['uid']))
 
-# @st.cache_resource
-# def load_sleep_model_and_assets():
-#     model = tf.keras.models.load_model("data/final_hybrid_cnn_lstm_sleep_model.keras")
-#     scaler = joblib.load("data/final_sleep_scaler.joblib")
-#     with open("data/final_sleep_model_metadata.json") as f:
-#         metadata = json.load(f)
-#     return model, scaler, metadata
-
-# sleep_model, sleep_scaler, sleep_meta = load_sleep_model_and_assets()
-
-# # Load cleaned data (already preprocessed for sleep model)
-# sleep_df = pd.read_csv("data/master_daily_data_cleaned_for_sleep_model.csv")
-# sleep_df["date"] = pd.to_datetime(sleep_df["date"])
-# sleep_df.sort_values(["uid", "date"], inplace=True)
-
-# ---------------------- UI -----------------------
 
 st.title("ScreenSense AI")
 
@@ -239,7 +222,6 @@ Make the tone warm, human, and insightful. Use markdown formatting exactly like 
     st.markdown(f"#### 🌿 Wellness Suggestion")
     st.success("🌱 " + gpt_output.split("**🌿")[-1].strip())
 
-
 # ---------------------- WEEKLY ----------------------
 with tab2:
     
@@ -303,213 +285,6 @@ with tab2:
             )
             st.markdown("### 🤖  Weekly Feedback")
             st.info(response2['choices'][0]['message']['content'])
-# with tab3:
-#     st.header("🛌 Sleep Prediction")
-
-#     # Load assets (cached for performance)
-#     @st.cache_resource
-#     def load_sleep_assets():
-#         model = tf.keras.models.load_model("data/final_hybrid_cnn_lstm_sleep_model.keras")
-#         scaler = joblib.load("data/final_sleep_scaler.joblib")
-#         with open("data/final_sleep_model_metadata.json") as f:
-#             metadata = json.load(f)
-#         data = pd.read_csv("data/master_daily_data_with_names.csv", parse_dates=["date"])
-#         return model, scaler, metadata, data
-
-#     model, scaler, meta, sleep_df = load_sleep_assets()
-
-#     # Extract metadata
-#     feature_cols = meta["feature_columns"]
-#     seq_len = meta["sequence_length"]
-#     threshold = meta["optimal_threshold"]
-#     labels = meta["target_names"]
-
-#     # ✅ Filter valid names safely
-#     valid_names_sleep = sorted(
-#         [name for name in df["name"].dropna().unique() if isinstance(name, str) and name.strip() != ""]
-#     )
-#     selected_name_sleep = st.selectbox("Select Student", valid_names_sleep, key="sleep_user")
-#     selected_uid_sleep = name_uid_map[selected_name_sleep]
-
-#     # Filter and prepare student data
-#     user_sleep_df = sleep_df[sleep_df["uid"] == selected_uid_sleep].copy()
-#     user_sleep_df = user_sleep_df.sort_values("date").reset_index(drop=True)
-
-#     # Generate list of valid prediction dates
-#     valid_dates = user_sleep_df["date"].iloc[seq_len:].dt.date.unique()
-#     selected_date = st.selectbox("Select Date to Predict Sleep Quality", valid_dates, key="sleep_date")
-
-#     # Get the 7-day sequence before selected date
-#     try:
-#         end_idx = user_sleep_df[user_sleep_df["date"].dt.date == selected_date].index[0]
-#         start_idx = end_idx - seq_len
-#         if start_idx < 0:
-#             raise IndexError("Not enough prior data.")
-#         seq_df = user_sleep_df.iloc[start_idx:end_idx][feature_cols]
-#     except Exception as e:
-#         st.error(f"Not enough data to make a prediction for this date. ({e})")
-#         st.stop()
-
-#     # Validate sequence length
-#     if seq_df.shape[0] != seq_len:
-#         st.error("Not enough prior data to make a prediction.")
-#     else:
-#         # Scale and reshape
-#         input_data = scaler.transform(seq_df)
-#         input_data = input_data.reshape(1, seq_len, len(feature_cols))
-
-#         # Predict
-#         pred_proba = model.predict(input_data)[0][0]
-#         prediction = int(pred_proba >= threshold)
-#         label = labels[prediction]
-
-#         # Display
-#         st.subheader(f"🛏️ Predicted Sleep Quality for {selected_name_sleep} on {selected_date}")
-#         st.success(f"**{label}** (Confidence: `{pred_proba:.2f}`)")
-
-#         # Simple explanation
-#         st.markdown("#### 📘 Explanation")
-#         if prediction == 1:
-#             st.info("Good sleep predicted! The student shows healthy behavioral patterns over the past week.")
-#         else:
-#             st.warning("Poor sleep predicted. Encourage better evening routines or less screen time before bed.")
-
-#         # ----------------- GPT Feedback ------------------
-#         st.markdown("#### 🤖 Personalized Sleep Insight")
-
-#         behavior_summary = seq_df.mean().to_dict()
-#         summary_text = "\n".join([f"- {k.replace('_', ' ').title()}: {round(v, 2)}" for k, v in behavior_summary.items()])
-
-#         sleep_feedback_prompt = f"""
-# You are a helpful AI coach. A student's sleep quality was predicted as **{label}** on {selected_date} using 7 days of behavior data.
-
-# Here is the average of their past 7 days' data:
-# {summary_text}
-
-# Please provide:
-# 1. **🧠 Sleep Insight**: In 2–3 lines, explain patterns in their behavior that likely led to this sleep prediction.
-# 2. **🌿 Wellness Tip**: One actionable recommendation for the student to improve or maintain sleep quality.
-
-# Use markdown formatting exactly like this:
-# **🧠 Sleep Insight:**
-# <your insight here>
-
-# **🌿 Wellness Tip:**
-# <your tip here>
-# """
-
-#         with st.spinner("🧠 Generating personalized feedback..."):
-#             response = openai.ChatCompletion.create(
-#                 model="gpt-4",
-#                 messages=[{"role": "user", "content": sleep_feedback_prompt}]
-#             )
-#             gpt_sleep_output = response['choices'][0]['message']['content']
-#             st.info(gpt_sleep_output)
-# with tab3:
-#     st.markdown("## 🛌 Predict Upcoming Sleep Quality")
-#     st.markdown("""
-#     This feature uses a student's **last 7 days of behavior** to predict whether they will have a **Good Sleep** or **Poor Sleep** on the selected date.
-    
-#     The prediction is made by a **CNN-LSTM model**, trained on time series patterns from student behavior like:
-#     - 📱 App Usage
-#     - 🏃 Physical Activity
-#     - 🗣️ Conversations
-#     - 🧠 Mental Health Scores
-#     """)
-
-#     @st.cache_resource
-#     def load_sleep_assets():
-#         model = tf.keras.models.load_model("data/final_hybrid_cnn_lstm_sleep_model.keras")
-#         scaler = joblib.load("data/final_sleep_scaler.joblib")
-#         with open("data/final_sleep_model_metadata.json") as f:
-#             metadata = json.load(f)
-#         data = pd.read_csv("data/master_daily_data_with_names.csv", parse_dates=["date"])
-#         return model, scaler, metadata, data
-
-#     model, scaler, meta, sleep_df = load_sleep_assets()
-#     feature_cols = meta["feature_columns"]
-#     seq_len = meta["sequence_length"]
-#     threshold = meta["optimal_threshold"]
-#     labels = meta["target_names"]
-
-#     valid_names = sorted([n for n in sleep_df["name"].dropna().unique() if isinstance(n, str) and n.strip()])
-#     selected_name = st.selectbox("👤 Select Student", valid_names, key="student_selector_tab3")
-#     selected_uid = sleep_df[sleep_df["name"] == selected_name]["uid"].iloc[0]
-
-#     user_df = sleep_df[sleep_df["uid"] == selected_uid].sort_values("date").reset_index(drop=True)
-#     valid_dates = user_df["date"].iloc[seq_len:].dt.date.unique()
-#     selected_date = st.selectbox("📅 Select Date to Predict Sleep", valid_dates, key="date_selector_tab3")
-
-#     try:
-#         end_idx = user_df[user_df["date"].dt.date == selected_date].index[0]
-#         start_idx = end_idx - seq_len
-#         if start_idx < 0:
-#             raise IndexError("Not enough prior data.")
-#         seq_df = user_df.iloc[start_idx:end_idx][feature_cols]
-#     except Exception as e:
-#         st.error(f"❗ Not enough data to make a prediction for this date. ({e})")
-#         st.stop()
-
-#     if seq_df.shape[0] != seq_len:
-#         st.warning("⚠️ Not enough prior data for a full 7-day sequence.")
-#         st.stop()
-
-#     input_data = scaler.transform(seq_df).reshape(1, seq_len, len(feature_cols))
-#     pred_proba = model.predict(input_data)[0][0]
-#     prediction = int(pred_proba >= threshold)
-#     label = labels[prediction]
-#     color = "#3cb371" if prediction == 1 else "#ff6b6b"
-
-#     st.markdown(f"""
-#     <div style="padding: 1rem; border-radius: 12px; background-color: {color}; color: white; font-size: 1.2rem">
-#         <b>Predicted Sleep Quality:</b> {label}  
-#         <br>
-#         <b>Confidence:</b> {pred_proba:.2f}
-#     </div>
-#     """, unsafe_allow_html=True)
-
-#     st.markdown("### 📊 Last 7 Days: Behavior Trends")
-#     st.markdown("Behavioral indicators used to predict sleep quality.")
-#     fig, ax = plt.subplots(figsize=(10, 3))
-#     cols_to_plot = [col for col in ["Running", "academic_study", "total_app_foreground_minutes"] if col in seq_df.columns]
-#     if cols_to_plot:
-#         seq_df[cols_to_plot].plot(ax=ax)
-#         ax.set_ylabel("Minutes / Intensity")
-#         ax.set_title("Running | Academic | App Usage (7-day window)")
-#         plt.xticks(rotation=45)
-#         st.pyplot(fig)
-#     else:
-#         st.info("No matching columns found for plotting trends.")
-
-#     st.markdown("### 🤖 Personalized Insight from GPT")
-#     behavior_summary = seq_df.mean().to_dict()
-#     summary_text = "\n".join([f"- {k.replace('_', ' ').title()}: {round(v, 2)}" for k, v in behavior_summary.items()])
-
-#     prompt = f"""
-# You are a helpful AI coach. A student's sleep quality was predicted as **{label}** on {selected_date} using 7 days of behavior data.
-
-# Here is the average of their past 7 days' data:
-# {summary_text}
-
-# Please provide:
-# 1. **🧠 Sleep Insight**: In 2–3 lines, explain patterns in their behavior that likely led to this sleep prediction.
-# 2. **🌿 Wellness Tip**: One actionable recommendation for the student to improve or maintain sleep quality.
-
-# Use markdown formatting exactly like this:
-# **🧠 Sleep Insight:**
-# <your insight here>
-
-# **🌿 Wellness Tip:**
-# <your tip here>
-# """
-
-#     with st.spinner("Generating AI-generated feedback..."):
-#         response = openai.ChatCompletion.create(
-#             model="gpt-4",
-#             messages=[{"role": "user", "content": prompt}]
-#         )
-#         gpt_response = response['choices'][0]['message']['content']
-#         st.info(gpt_response)
 
 with tab3:
     st.markdown("## 🛌 Predict Upcoming Sleep Quality")
@@ -525,9 +300,13 @@ with tab3:
 
     @st.cache_resource
     def load_sleep_assets():
-        model = tf.keras.models.load_model("data/final_hybrid_cnn_lstm_sleep_model.keras")
-        model.save("dataset/saved_model_format", save_format="tf")
-        
+        # model = tf.keras.models.load_model("data/final_hybrid_cnn_lstm_sleep_model.keras")
+        # model.export("data/saved_model_format")
+        model = tf.keras.models.load_model("data/saved_model_format")
+
+
+
+
         scaler = joblib.load("data/final_sleep_scaler.joblib")
         with open("data/final_sleep_model_metadata.json") as f:
             metadata = json.load(f)
