@@ -1,0 +1,33 @@
+{
+    "feature_columns": [
+        "Running",
+        "Stationary",
+        "Unknown",
+        "Walking",
+        "academic_study",
+        "dining",
+        "other",
+        "other_campus_specific_building",
+        "residential",
+        "social_recreation",
+        "Noise",
+        "Silence",
+        "Voice",
+        "total_conversation_duration_minutes",
+        "number_of_conversations",
+        "nighttime_dark_minutes_dark",
+        "nighttime_locked_minutes_phonelock",
+        "min_dark_locked_night_minutes",
+        "total_app_foreground_minutes",
+        "distinct_apps_used",
+        "total_app_events",
+        "PHQ9_total_score"
+    ],
+    "sequence_length": 7,
+    "optimal_threshold": 0.5065062046051025,
+    "target_names": [
+        "Poor Sleep (0)",
+        "Good Sleep (1)"
+    ],
+    "model_type": "Hybrid CNN-LSTM for Sleep Classification"
+}

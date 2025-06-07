@@ -36,14 +36,11 @@ eggs/
 .streamlit/secrets.toml
 
 # Model or data cache
-*.joblib
-*.h5
-*.keras
-*.pkl
+
 
 # Streamlit Cloud deployment config cache
 .streamlit/config.toml
 
-# Local datasets
-*.csv
-data/
+
+
+.env
