@@ -1,18 +1,9 @@
-# Core app
-streamlit>=1.32.0
-
-# ML & prediction
-tensorflow>=2.11.0
-scikit-learn
-joblib
+streamlit==1.35.0
 pandas
-
-# Charts
+numpy
 matplotlib
-
-# OpenAI GPT integration
+seaborn
+scikit-learn
 openai
-
-# Optional: improve rendering and markdown
-markdown-it-py
-rich
+python-dotenv
+datetime
