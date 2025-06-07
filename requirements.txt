@@ -8,4 +8,4 @@ scikit-learn
 matplotlib==3.10.3
 seaborn==0.13.2
 openai==0.28.0
-python-dotenv==1.1.0
+python-dotenv==1.0.1
