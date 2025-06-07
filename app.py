@@ -10,6 +10,7 @@ import json
 import os
 from dotenv import load_dotenv
 import tensorflow as tf
+
 # 🔐 OpenAI API Key
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -144,6 +145,7 @@ name_uid_map = dict(zip(df['name'], df['uid']))
 # sleep_df.sort_values(["uid", "date"], inplace=True)
 
 # ---------------------- UI -----------------------
+
 st.title("ScreenSense AI")
 
 tab1, tab2 , tab3 = st.tabs(["📅 Daily View", "📈 Weekly Summary","Sleep Prediction"])
@@ -524,6 +526,8 @@ with tab3:
     @st.cache_resource
     def load_sleep_assets():
         model = tf.keras.models.load_model("data/final_hybrid_cnn_lstm_sleep_model.keras")
+        model.save("dataset/saved_model_format", save_format="tf")
+        
         scaler = joblib.load("data/final_sleep_scaler.joblib")
         with open("data/final_sleep_model_metadata.json") as f:
             metadata = json.load(f)
