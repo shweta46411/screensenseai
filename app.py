@@ -300,13 +300,7 @@ with tab3:
 
     @st.cache_resource
     def load_sleep_assets():
-        # model = tf.keras.models.load_model("data/final_hybrid_cnn_lstm_sleep_model.keras")
-        # model.export("data/saved_model_format")
-        model = tf.keras.models.load_model("data/saved_model_format")
-
-
-
-
+        model = tf.keras.models.load_model("data/final_hybrid_cnn_lstm_sleep_model.keras")
         scaler = joblib.load("data/final_sleep_scaler.joblib")
         with open("data/final_sleep_model_metadata.json") as f:
             metadata = json.load(f)
